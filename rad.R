@@ -1,7 +1,7 @@
 library(tidyverse)
 library(lubridate)
 
-r16 <- read_delim("~/AnacondaProjects/R/Projekte/RadWien/rad_vz_2016.csv", 
+r16 <- read_delim("~/AnacondaProjects/R/Projekte/RadWien/data/rad_vz_2016.csv", 
                     ";", escape_double = FALSE, col_types = cols(Datum = col_date(format = "%Y%m%d")), 
                     trim_ws = TRUE)
 #plot -------------------------------------------
@@ -44,19 +44,17 @@ r16_d <- r16 %>%
 
 # Vergleich Mittelwert Wochende mit Mittelwert Arbeitstag--------------------
  
-r16_d %>%
-  group_by(Datum) %>% 
-  summarise(sum=sum(values)) %>% 
-  ggplot(aes(Datum,sum))+ geom_point()  
-  
+wochendat <- r16_d %>% 
+  group_by(mess,wday(Datum) %in% 2:6) %>% 
+  summarise(mean(values))
+wochendat
 
-we <- wday(r16$Datum)>=6
-at <- wday(r16$Datum)<6
+mean(weekend)
 
-we_d <- r16_d$values[we]
-at_d <- r16_d$values[at]
+# r16_d %>%
+#   group_by(Datum) %>% 
+#   summarise(sum=sum(values)) %>% 
+#   ggplot(aes(Datum,sum))+ geom_point()  
+#   
 
-mean(r16_d$values[we])
-mean(r16_d$values[at])
-
-t.test(we_d,at_d)
+ 
