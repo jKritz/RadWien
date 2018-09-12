@@ -45,16 +45,13 @@ r16_d <- r16 %>%
 # Vergleich Mittelwert Wochende mit Mittelwert Arbeitstag--------------------
  
 wochendat <- r16_d %>% 
-  group_by(mess,wday(Datum) %in% 2:6) %>% 
-  summarise(mean(values))
-wochendat
+  group_by(wday(Datum) %in% 2:6) %>% 
+  summarise(mw=mean(values))
 
-mean(weekend)
+WE_MW <- wochendat$mw[1]
+WT_MW <- wochendat$mw[2]
 
-# r16_d %>%
-#   group_by(Datum) %>% 
-#   summarise(sum=sum(values)) %>% 
-#   ggplot(aes(Datum,sum))+ geom_point()  
-#   
-
- 
+wochentag <- wday(r16_d$Datum) %in% 2:6
+Wochenendtag <- wday(r16_d$Datum) ==1 | wday(r16_d$Datum) ==7
+wochenendtag
+mean(r16_d$Datum[wochentag]$values)
