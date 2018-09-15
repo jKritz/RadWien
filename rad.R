@@ -1,6 +1,6 @@
 library(tidyverse)
 library(lubridate)
-
+[
 r16 <- read_delim("~/AnacondaProjects/R/Projekte/RadWien/data/rad_vz_2016.csv", 
                     ";", escape_double = FALSE, col_types = cols(Datum = col_date(format = "%Y%m%d")), 
                     trim_ws = TRUE)
@@ -40,10 +40,7 @@ r16_d <- r16 %>%
   
  summary(r16)
  
- head(r16)
-
-# Vergleich Mittelwert Wochende mit Mittelwert Arbeitstag--------------------
- 
+ he# Vergleich Mittelwert Wochende mit Mittelwert Arbeitstag------------------
 wochendat <- r16_d %>% 
   group_by(wday(Datum) %in% 2:6) %>% 
   summarise(mw=mean(values))
