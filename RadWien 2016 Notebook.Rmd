@@ -1,0 +1,77 @@
+---
+title: "RadWien 2016"
+output: html_notebook
+---
+
+## Anforderungen
+
+die Studie soll folgende Fragestellungen behandeln:
+
++ Lagestatistiken der Messpunkte
++ Vergleich der Anzahl Radfahrer an den verschiedenen Messpunkten(Grafik)
+  Jahreswerte
++ Ganzjahres - Time series an den Messpunkten (Grafik)
++ Vergleich Arbeitstage mit Wochendende 
+
+### Libraries
+```{r Libraries}
+library(tidyverse)
+library(lubridate)
+```
+
+### Data
+```{r Get data}
+r16 <- read_delim("~/AnacondaProjects/R/Projekte/RadWien/data/rad_vz_2016.csv", 
+                    ";", escape_double = FALSE, col_types = cols(Datum = col_date(format = "%Y%m%d")), 
+                    trim_ws = TRUE)
+```
+## Lagestatistiken an den Messpunkten
+```{r}
+summary(r16)
+```
+
+## Jahreswerte an den Messpunkten
+```{r}
+r16_m <- r16 %>% 
+  mutate (Monate=floor_date(Datum,unit='month')) %>% 
+  select(-Datum) %>% 
+  gather(mess,values,-Monate)
+
+  ggplot(r16_m,aes(x=Monate,y=values))+
+  geom_col()+
+  facet_wrap(vars(mess))+
+  theme_gray(base_size=8)+
+  ggtitle("Radzählung Wien 2016")  
+
+```
+
+## Jahresverlauf an den Messpunkten
+```{r}
+r16_d <- r16 %>% 
+    gather(mess,values,-Datum)
+  
+  ggplot(r16_d,aes(x=Datum,y=values))+
+    geom_point(aes(alpha=0.5),color='red')+
+    geom_smooth()+
+    facet_wrap(vars(mess))+
+    theme_gray(base_size=10)+
+    ggtitle("Radzählung Wien 2016") 
+```
+ 
+## Vergleich der Fahrten an Arbeitstagen und am Wochenende
+```{r}
+r16_d<-r16_d%>%
+   mutate(wt=as_factor(if_else((wday(Datum)%in% c(1,7)),'ft','at')))
+ 
+ r16_d%>%
+   group_by(mess,wt)%>%
+   summarise(mw=mean(values))%>%
+   ggplot(aes(mess,mw,fill=wt))+
+   geom_bar(stat='identity')+coord_flip()+
+   labs(y="Mittelwert Fahrten pro Tag",x="Messpunkt",title="Vergleich Werktage und Wochendtage")+
+   scale_fill_discrete(name='Wochentag',
+                       labels=c('Arbeitstag',"Wochenende"))
+```
+
+
+
