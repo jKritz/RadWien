@@ -1,6 +1,6 @@
 library(tidyverse)
 library(lubridate)
-[
+
 r16 <- read_delim("~/AnacondaProjects/R/Projekte/RadWien/data/rad_vz_2016.csv", 
                     ";", escape_double = FALSE, col_types = cols(Datum = col_date(format = "%Y%m%d")), 
                     trim_ws = TRUE)
@@ -40,15 +40,17 @@ r16_d <- r16 %>%
   
  summary(r16)
  
- he# Vergleich Mittelwert Wochende mit Mittelwert Arbeitstag------------------
-wochendat <- r16_d %>% 
-  group_by(wday(Datum) %in% 2:6) %>% 
-  summarise(mw=mean(values))
+ r16_d<-r16_d%>%
+   mutate(wt=as_factor(if_else((wday(Datum)%in% c(1,7)),'ft','at')))
+ 
+ r16_d%>%
+   group_by(mess,wt)%>%
+   summarise(mw=mean(values))%>%
+   ggplot(aes(mess,mw,fill=wt))+
+   geom_bar(stat='identity',position="fill")+coord_flip()+
+   labs(y="Mittelwertvergleich Fahrten pro Tag",x="Messpunkt",title="Vergleich Werktage und Wochendtage")+
+   scale_fill_discrete(name='Wochentag',
+                       labels=c('Arbeitstag',"Wochenende"))+
+   theme(panel.grid.minor.x = element_line(colour="white",size=2.0))
 
-WE_MW <- wochendat$mw[1]
-WT_MW <- wochendat$mw[2]
-
-wochentag <- wday(r16_d$Datum) %in% 2:6
-Wochenendtag <- wday(r16_d$Datum) ==1 | wday(r16_d$Datum) ==7
-wochenendtag
-mean(r16_d$Datum[wochentag]$values)
+         
