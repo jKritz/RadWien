@@ -7,11 +7,12 @@ output: html_notebook
 
 die Studie soll folgende Fragestellungen behandeln:
 
-+ Lagestatistiken der Messpunkte
-+ Vergleich der Anzahl Radfahrer an den verschiedenen Messpunkten(Grafik)
-  Jahreswerte
-+ Ganzjahres - Time series an den Messpunkten (Grafik)
-+ Vergleich Arbeitstage mit Wochendende 
++ Ranking Messstellen 
++ Jahreswerte je Monat und Messtelle
++ Jahreswerte je Tag als time-series
++ Vergleich Arbeitstage mit Wochendende
++ BoxplotÜbersicht
++ Tagesranking
 
 ### Libraries
 ```{r Libraries}
@@ -22,10 +23,13 @@ library(lubridate)
 ### Data
 ```{r Get data}
 r16 <- read_delim("~/AnacondaProjects/R/Projekte/RadWien/data/rad_vz_2016.csv", 
-                    ";", escape_double = FALSE, col_types = cols(Datum = col_date(format = "%Y%m%d")), 
-                    trim_ws = TRUE)
+                  ";", escape_double = FALSE, 
+                  col_types = cols(Datum = col_date(format = "%Y%m%d")), 
+                  trim_ws = TRUE)
+r16 <- r16[,-c(8,9)] 
+# Opernring nurSumme von (Innenringe,Außenring)
 ```
-
+## Umformung
 ```{r Umformung}
 r16_m <- r16 %>% 
   mutate (Monate=floor_date(Datum,unit='month')) %>% 
@@ -77,20 +81,23 @@ r16_d%>%
    summarise(mw=mean(values))%>%
    ggplot(aes(mess,mw,fill=wt))+
    geom_bar(stat='identity',position="fill")+coord_flip()+
-   labs(y="Mittelwertvergleich",x="Messpunkt",title="Werktage zu Wochenendtage")+
+   labs(y="Mittelwertvergleich",x="Messpunkt",title="Verhältnis Werktage zu Wochenendtage")+
    scale_fill_discrete(name='Wochentag',
                        labels=c('Arbeitstag',"Wochenende"))+
    theme(panel.grid.major.x = element_line(colour="white",size=2.0))
 ```
-## Boxplots
-```{r boxplots}
-r16_m %>% 
-  group_by(mess) %>%
-  summarise(sum=sum(values)) %>%
-  ggplot(aes(y=sum))+
-    geom_boxplot()+
-    facet_wrap(vars(mess))+
-    labs(x="Messstellen",y="Anzahl",title="Ganzjahressummen")
-```
 
+```{r Tagesranking}
+t <- r16_d %>% 
+  group_by(Tage) %>% 
+  summarise(sum=sum(values)) %>% 
+  filter(rank(desc(sum))<=10)
+
+  ggplot(t,aes(x=1:10,y=sum))+
+    geom_bar(stat="identity")+
+    labs(y="Summe",title="Stärkste Tage")+
+    scale_x_continuous(name="Tage",breaks=c(1:10),labels=t$Tage)+
+    theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+```
 
